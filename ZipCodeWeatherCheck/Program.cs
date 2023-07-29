@@ -30,6 +30,7 @@ static IHostBuilder CreateHostBuilder(string[] args)
             services.AddLogging();
             services.AddSingleton<App>();
             services.AddSingleton<IWeatherStackService,WeatherStackService>();
+            services.AddSingleton<IUserQuestionsServices,UserQuestionsServices>();
             services.AddHttpClient("WeatherStack", httpClient =>
             {
                 httpClient.BaseAddress = new Uri(context.Configuration.GetSection("WeatherStack:Url").Value);

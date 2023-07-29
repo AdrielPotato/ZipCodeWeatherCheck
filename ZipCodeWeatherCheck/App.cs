@@ -1,6 +1,5 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
+using WeatherCheckLibrary.Entities;
 using WeatherCheckLibrary.Services.Interfaces;
 
 namespace ZipCodeWeatherCheck
@@ -8,11 +7,13 @@ namespace ZipCodeWeatherCheck
     public class App
     {
         private readonly IWeatherStackService _weatherStackService;
+        private readonly IUserQuestionsServices _questionsServices;
         private readonly ILogger<App> _logger;
 
-        public App(IWeatherStackService weatherStackService, ILogger<App> logger)
+        public App(IWeatherStackService weatherStackService, IUserQuestionsServices questionsServices, ILogger<App> logger)
         {
             _weatherStackService = weatherStackService;
+            _questionsServices = questionsServices;
             _logger = logger;
         }
 
@@ -27,15 +28,24 @@ namespace ZipCodeWeatherCheck
 
                     if (!int.TryParse(zipcodeStr, out int zipcode))
                     {
-                        Console.WriteLine("Please enter valid zipcode");
+                        Console.WriteLine("Please enter a valid zipcode");
                         continue;
                     }
 
-                    var response = await _weatherStackService.GetCurrentWeatherByZipCode(zipcode);
+                    (bool Success, CurrentWeatherResponse current, WeatherStackError error) = await _weatherStackService.GetCurrentWeatherByZipCode(zipcode);
 
-                    Console.WriteLine(response);
+                    if (!Success)
+                    {
+                        Console.WriteLine("Please enter a valid zipcode");
+                        continue;
+                    }
+
+                    var weather = current.Current;
+                    Console.WriteLine($"{_questionsServices.ShouldIGoOutside(weather.WeatherCode)}, Weather is {weather.WeatherDescriptions.FirstOrDefault()} ");
+                    Console.WriteLine($"{_questionsServices.ShouldIWearSunscreen(weather.UVIndex)}, Current UV Index: {weather.UVIndex}");
+                    Console.WriteLine($"{_questionsServices.CanIFlyMyKite(weather.WeatherCode, weather.WindSpeed)}, Wind speed is {weather.WindSpeed}");
                 }
-               
+
             }
             catch (Exception e)
             {

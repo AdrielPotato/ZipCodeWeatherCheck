@@ -56,7 +56,7 @@ namespace WeatherCheckLibrary.Services
                 var result = JsonConvert.DeserializeObject<CurrentWeatherResponse>(jsonStr);
                 var error = JsonConvert.DeserializeObject<WeatherStackError>(jsonStr);
                 bool success = true;
-                if (!error.Success)
+                if (error.Error != null)
                 {
                     success = false;
                     _logger.LogError(error.Error.Info);
